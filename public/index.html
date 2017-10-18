@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#000000">
+    <!--
+      manifest.json provides metadata used when your web app is added to the
+      homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
+    -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <title>Cast</title>
+    <script type="text/javascript" src="//www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
+    <script type="text/javascript">
+
+      /**
+       * Call initialization for Cast
+       */
+      if (!chrome.cast || !chrome.cast.isAvailable) {
+        console.log('not initialized')
+        setTimeout(initializeCastApi, 1000);
+      }
+      const namespace = 'urn:x-cast:com.google.cast.sample.helloworld';
+      let session = null;
+
+      /**
+       * initialization
+       */
+      function initializeCastApi() {
+        const applicationID =  chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
+        console.log(applicationID)
+        let sessionRequest = new chrome.cast.SessionRequest(applicationID);
+        // let apiConfig = new chrome.cast.ApiConfig(sessionRequest,
+        //   sessionListener,receiverListener,null,chrome.cast.DefaultActionPolicy.CAST_THIS_TAB); 
+        let apiConfig = new chrome.cast.ApiConfig(sessionRequest,
+          sessionListener,receiverListener);
+
+        let c = chrome.cast.initialize(apiConfig, onInitSuccess, onError);
+        // console.log('c', c);
+      }
+
+      /**
+       * receiver listener during initialization
+       */
+      function receiverListener(e) {
+        if(e === 'available') {
+          appendMessage('receiver found');
+        }
+        else {
+          appendMessage('receiver list empty');
+        }
+      }
+
+      /**
+       * append message to debug message window
+       * @param {string} message A message string
+       */
+      function appendMessage(message) {
+        console.log(message);
+        var dw = document.getElementById('msg');
+        dw.innerHTML += '\n' + JSON.stringify(message);
+      }
+
+      /**
+       * initialization success callback
+       */
+      function onInitSuccess() {
+        console.log('onInitSuccess');
+      }
+
+      /**
+       * initialization error callback
+       */
+      function onError(message) {
+        appendMessage('onError: ' + JSON.stringify(message));
+      }
+
+      /**
+       * generic success callback
+       */
+      function onSuccess(message) {
+        appendMessage('onSuccess: ' + message);
+      }
+
+      /**
+       * callback on success for stopping app
+       */
+      function onStopAppSuccess() {
+        appendMessage('onStopAppSuccess');
+      }
+
+      /**
+       * session listener during initialization
+       */
+      function sessionListener(e) {
+        appendMessage('New session ID:' + e.sessionId);
+        session = e;
+        session.addUpdateListener(sessionUpdateListener);
+        session.addMessageListener(namespace, receiverMessage);
+      }
+
+      /**
+       * utility function to log messages from the receiver
+       * @param {string} namespace The namespace of the message
+       * @param {string} message A message string
+       */
+      function receiverMessage(namespace, message) {
+        appendMessage('receiverMessage: ' + namespace + ', ' + message);
+      }
+      /**
+       * listener for session updates
+       */
+      function sessionUpdateListener(isAlive) {
+        var message = isAlive ? 'Session Updated' : 'Session Removed';
+        message += ': ' + session.sessionId;
+        appendMessage(message);
+        if (!isAlive) {
+          session = null;
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <div id="root"></div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+  </body>
+</html>
