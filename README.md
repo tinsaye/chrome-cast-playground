@@ -1,4 +1,6 @@
+
 npm intall
+
 npm start
 
 js code currently in public/index.html
